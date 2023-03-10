@@ -16,6 +16,12 @@ module.exports = {
 				// prettier-ignore
 				'orange': '#FFA07A',
 			},
+			fontFamily: {
+				//prettier-ignore
+				'montserrat': ['Montserrat', 'sans-serif'],
+				//prettier-ignore
+				'openSans': ['Open Sans', 'sans-serif'],
+			},
 		},
 	},
 	plugins: [],
