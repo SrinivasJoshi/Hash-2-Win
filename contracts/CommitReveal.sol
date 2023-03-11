@@ -24,6 +24,7 @@ contract CommitReveal{
     }
     Puzzle[] public puzzles;
     uint public totalPuzzles;
+    address public owner;
 
     mapping(uint => mapping(address => bytes32)) private committedAnswers;
     mapping(uint => mapping(address => bool)) public isPrizeClaimed;
@@ -45,6 +46,10 @@ contract CommitReveal{
     /*
      * Public Functions
      */
+
+    constructor(){
+        owner=msg.sender;
+    }
     
     /// @dev Allows a user to create a puzzle
     /// @param _hashedAnswer hash of the solution to the puzzle
