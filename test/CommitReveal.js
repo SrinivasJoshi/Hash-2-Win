@@ -20,7 +20,13 @@ async function deployCommitReveal() {
 	);
 
 	const guessDeadline = Math.floor(Date.now() / 1000) + 1000;
-	const revealDeadline = Math.floor(Date.now() / 1000) + 2000;
+	const revealDeadline = Math.floor(Date.now() / 1000) + 3000;
+
+	await commitReveal
+		.connect(otherAccount1)
+		.createPuzzle(_hashAnswer, guessDeadline, revealDeadline, { value: 10 });
+
+	console.log(await commitReveal.totalPuzzles());
 
 	return {
 		commitReveal,
@@ -96,14 +102,232 @@ describe('Creation of Puzzle', async () => {
 		await commitReveal
 			.connect(otherAccount1)
 			.createPuzzle(_hashAnswer, guessDeadline, revealDeadline, { value: 1 });
-		expect(await commitReveal.totalPuzzles()).to.equal(1);
+		expect(await commitReveal.totalPuzzles()).to.equal(2);
 	});
 });
 
 describe('Submit Commitment', async () => {
-	it('Should revert with right error if puzzleId is incorrect', async () => {});
+	it('Should revert with right error if puzzleId is incorrect', async () => {
+		const { commitReveal, otherAccount2 } = await loadFixture(
+			deployCommitReveal
+		);
 
-	it('Should revert with right error if msg.sender is the creator of puzzle', async () => {});
+		const _hashAnswer2 = await commitReveal.createCommitment(
+			otherAccount2.address,
+			123456
+		);
 
-	it('Should revert with right error if the submitted late', async () => {});
+		await expect(
+			commitReveal.connect(otherAccount2).submitCommitment(_hashAnswer2, 3)
+		).to.be.revertedWith('Puzzle does not exist');
+	});
+
+	it('Should revert with right error if msg.sender is the creator of puzzle', async () => {
+		const { commitReveal, otherAccount1 } = await loadFixture(
+			deployCommitReveal
+		);
+
+		const _hashAnswer2 = await commitReveal.createCommitment(
+			otherAccount1.address,
+			123456
+		);
+
+		await expect(
+			commitReveal.connect(otherAccount1).submitCommitment(_hashAnswer2, 0)
+		).to.be.revertedWith('Creator of puzzle cannot use this');
+	});
+
+	it('Should revert with right error if the submitted late', async () => {
+		const { commitReveal, otherAccount2 } = await loadFixture(
+			deployCommitReveal
+		);
+
+		const _hashAnswer2 = await commitReveal.createCommitment(
+			otherAccount2.address,
+			123456
+		);
+
+		let t = (await time.latest()) + 2000;
+		await time.increaseTo(t);
+
+		await expect(
+			commitReveal.connect(otherAccount2).submitCommitment(_hashAnswer2, 0)
+		).to.be.revertedWith('Late to submit solution to puzzle');
+	});
+
+	describe('Reveal', async () => {
+		it('Should revert with right error if puzzleId is incorrect', async () => {
+			const { commitReveal, otherAccount2 } = await loadFixture(
+				deployCommitReveal
+			);
+
+			await expect(
+				commitReveal.connect(otherAccount2).reveal(123, 3)
+			).to.be.revertedWith('Puzzle does not exist');
+		});
+
+		it('Should revert with right error if submitted by Creator', async () => {
+			const { otherAccount1, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			await expect(
+				commitReveal.connect(otherAccount1).reveal(123, 0)
+			).to.be.revertedWith('Creator of puzzle cannot use this');
+		});
+
+		it('Should revert with right error if the submitted before guess deadline', async () => {
+			const { otherAccount2, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			await expect(
+				commitReveal.connect(otherAccount2).reveal(123, 0)
+			).to.be.revertedWith('Cannot reveal before deadline');
+		});
+
+		it('Should revert with right error if the submitted after reveal deadline', async () => {
+			const { otherAccount2, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			let t = (await time.latest()) + 4000;
+			await time.increaseTo(t);
+
+			await expect(
+				commitReveal.connect(otherAccount2).reveal(123, 0)
+			).to.be.revertedWith('Reveal deadline crossed');
+		});
+
+		it('Should revert with right error if the submitted answer does not match hash', async () => {
+			const { otherAccount2, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			const _hashAnswer = await commitReveal.createCommitment(
+				otherAccount2.address,
+				123456
+			);
+			await commitReveal
+				.connect(otherAccount2)
+				.submitCommitment(_hashAnswer, 0);
+			let t = (await time.latest()) + 1500;
+			await time.increaseTo(t);
+
+			await expect(
+				commitReveal.connect(otherAccount2).reveal(12345, 0)
+			).to.be.revertedWith('Answer does not match committed answer');
+		});
+
+		it('Should revert with right error if the submitted answer is incorrect', async () => {
+			const { otherAccount2, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			const _hashAnswer = await commitReveal.createCommitment(
+				otherAccount2.address,
+				123456
+			);
+			await commitReveal
+				.connect(otherAccount2)
+				.submitCommitment(_hashAnswer, 0);
+			let t = (await time.latest()) + 1500;
+			await time.increaseTo(t);
+
+			await expect(
+				commitReveal.connect(otherAccount2).reveal(123456, 0)
+			).to.be.revertedWith('Answer is incorrect');
+		});
+
+		it('Should revert with right error if the submitted user is already a winner', async () => {
+			const { otherAccount2, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			const _hashAnswer = await commitReveal.createCommitment(
+				otherAccount2.address,
+				12345
+			);
+			await commitReveal
+				.connect(otherAccount2)
+				.submitCommitment(_hashAnswer, 0);
+			let t = (await time.latest()) + 1500;
+			await time.increaseTo(t);
+
+			await commitReveal.connect(otherAccount2).reveal(12345, 0);
+
+			await expect(
+				commitReveal.connect(otherAccount2).reveal(12345, 0)
+			).to.be.revertedWith('Already a winner');
+		});
+	});
+
+	describe('Claim', async () => {
+		it('Should revert with right error if puzzleId is incorrect', async () => {
+			const { commitReveal, otherAccount2 } = await loadFixture(
+				deployCommitReveal
+			);
+
+			await expect(
+				commitReveal.connect(otherAccount2).claim(3)
+			).to.be.revertedWith('Puzzle does not exist');
+		});
+
+		it('Should revert with right error if submitted by Creator', async () => {
+			const { otherAccount1, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			await expect(
+				commitReveal.connect(otherAccount1).claim(0)
+			).to.be.revertedWith('Creator of puzzle cannot use this');
+		});
+
+		it('Should revert with right error if submitted by a non-winner', async () => {
+			const { otherAccount2, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			let t = (await time.latest()) + 3500;
+			await time.increaseTo(t);
+			await expect(
+				commitReveal.connect(otherAccount2).claim(0)
+			).to.be.revertedWith('Not a winner');
+		});
+
+		it('Should revert with right error if prize already claimed', async () => {
+			const { otherAccount2, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			const _hashAnswer = await commitReveal.createCommitment(
+				otherAccount2.address,
+				12345
+			);
+			//guess
+			await commitReveal
+				.connect(otherAccount2)
+				.submitCommitment(_hashAnswer, 0);
+			let t = (await time.latest()) + 1500;
+			await time.increaseTo(t);
+			//reveal
+			await commitReveal.connect(otherAccount2).reveal(12345, 0);
+			let t2 = (await time.latest()) + 3500;
+			await time.increaseTo(t2);
+			await commitReveal.connect(otherAccount2).claim(0);
+			await expect(
+				commitReveal.connect(otherAccount2).claim(0)
+			).to.be.revertedWith('Already claimed');
+		});
+
+		it('Should revert with right error if reveal deadline is not complete', async () => {
+			const { otherAccount2, commitReveal } = await loadFixture(
+				deployCommitReveal
+			);
+			const _hashAnswer = await commitReveal.createCommitment(
+				otherAccount2.address,
+				12345
+			);
+			await commitReveal
+				.connect(otherAccount2)
+				.submitCommitment(_hashAnswer, 0);
+			let t = (await time.latest()) + 1500;
+			await time.increaseTo(t);
+			await commitReveal.connect(otherAccount2).reveal(12345, 0);
+			await expect(
+				commitReveal.connect(otherAccount2).claim(0)
+			).to.be.revertedWith('Reveal deadline not complete');
+		});
+	});
 });

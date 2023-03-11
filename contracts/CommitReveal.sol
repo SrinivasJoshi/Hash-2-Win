@@ -99,6 +99,7 @@ contract CommitReveal{
 
         isPuzzleWinner[_puzzleId][msg.sender]=true;
         _puzzle.winnerCount+=1;
+        puzzles[_puzzleId]=_puzzle;
         emit WinnerOfPuzzle(_puzzleId,msg.sender);
     }
 
@@ -106,9 +107,9 @@ contract CommitReveal{
     /// @param _puzzleId puzzle ID
     function claim(uint _puzzleId) puzzleExist(_puzzleId) notCreator(_puzzleId) public{
         Puzzle memory _puzzle = puzzles[_puzzleId];
+        require(block.timestamp > _puzzle.revealDeadline,"Reveal deadline not complete");
         require(isPuzzleWinner[_puzzleId][msg.sender],"Not a winner");
         require(!isPrizeClaimed[_puzzleId][msg.sender],"Already claimed");
-        require(block.timestamp > _puzzle.revealDeadline,"Reveal deadline not complete");
 
         uint prize = _puzzle.totalPrize/_puzzle.winnerCount;
         isPrizeClaimed[_puzzleId][msg.sender]=true;
