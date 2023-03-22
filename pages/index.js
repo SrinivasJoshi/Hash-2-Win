@@ -1,8 +1,9 @@
 import Button from '../components/Button';
-
+import Navbar from '../components/Navbar';
 function HomePage() {
 	return (
 		<section className='bg-purple font-montserrat flex flex-col items-center'>
+			<Navbar />
 			<div className='min-h-screen flex flex-col items-center justify-evenly'>
 				<h1
 					id='topElement'
@@ -15,7 +16,7 @@ function HomePage() {
 					platform today!
 				</p>
 				<div className='flex justify-between w-72'>
-					<Button text={'View Quizzes'} link={'quizzes'} />
+					<Button text={'View Quizzes'} link={'puzzles'} />
 					<Button text={'Take a Quiz'} link={'create'} />
 				</div>
 			</div>

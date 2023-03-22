@@ -162,7 +162,7 @@ describe('Submit Commitment', async () => {
 			);
 
 			await expect(
-				commitReveal.connect(otherAccount2).reveal(123, 3)
+				commitReveal.connect(otherAccount2).revealSolution(123, 3)
 			).to.be.revertedWith('Puzzle does not exist');
 		});
 
@@ -171,7 +171,7 @@ describe('Submit Commitment', async () => {
 				deployCommitReveal
 			);
 			await expect(
-				commitReveal.connect(otherAccount1).reveal(123, 0)
+				commitReveal.connect(otherAccount1).revealSolution(123, 0)
 			).to.be.revertedWith('Creator of puzzle cannot use this');
 		});
 
@@ -180,7 +180,7 @@ describe('Submit Commitment', async () => {
 				deployCommitReveal
 			);
 			await expect(
-				commitReveal.connect(otherAccount2).reveal(123, 0)
+				commitReveal.connect(otherAccount2).revealSolution(123, 0)
 			).to.be.revertedWith('Cannot reveal before deadline');
 		});
 
@@ -192,7 +192,7 @@ describe('Submit Commitment', async () => {
 			await time.increaseTo(t);
 
 			await expect(
-				commitReveal.connect(otherAccount2).reveal(123, 0)
+				commitReveal.connect(otherAccount2).revealSolution(123, 0)
 			).to.be.revertedWith('Reveal deadline crossed');
 		});
 
@@ -211,7 +211,7 @@ describe('Submit Commitment', async () => {
 			await time.increaseTo(t);
 
 			await expect(
-				commitReveal.connect(otherAccount2).reveal(12345, 0)
+				commitReveal.connect(otherAccount2).revealSolution(12345, 0)
 			).to.be.revertedWith('Answer does not match committed answer');
 		});
 
@@ -230,7 +230,7 @@ describe('Submit Commitment', async () => {
 			await time.increaseTo(t);
 
 			await expect(
-				commitReveal.connect(otherAccount2).reveal(123456, 0)
+				commitReveal.connect(otherAccount2).revealSolution(123456, 0)
 			).to.be.revertedWith('Answer is incorrect');
 		});
 
@@ -248,10 +248,10 @@ describe('Submit Commitment', async () => {
 			let t = (await time.latest()) + 1500;
 			await time.increaseTo(t);
 
-			await commitReveal.connect(otherAccount2).reveal(12345, 0);
+			await commitReveal.connect(otherAccount2).revealSolution(12345, 0);
 
 			await expect(
-				commitReveal.connect(otherAccount2).reveal(12345, 0)
+				commitReveal.connect(otherAccount2).revealSolution(12345, 0)
 			).to.be.revertedWith('Already a winner');
 		});
 	});
@@ -263,7 +263,7 @@ describe('Submit Commitment', async () => {
 			);
 
 			await expect(
-				commitReveal.connect(otherAccount2).claim(3)
+				commitReveal.connect(otherAccount2).claimPrize(3)
 			).to.be.revertedWith('Puzzle does not exist');
 		});
 
@@ -272,7 +272,7 @@ describe('Submit Commitment', async () => {
 				deployCommitReveal
 			);
 			await expect(
-				commitReveal.connect(otherAccount1).claim(0)
+				commitReveal.connect(otherAccount1).claimPrize(0)
 			).to.be.revertedWith('Creator of puzzle cannot use this');
 		});
 
@@ -283,7 +283,7 @@ describe('Submit Commitment', async () => {
 			let t = (await time.latest()) + 3500;
 			await time.increaseTo(t);
 			await expect(
-				commitReveal.connect(otherAccount2).claim(0)
+				commitReveal.connect(otherAccount2).claimPrize(0)
 			).to.be.revertedWith('Not a winner');
 		});
 
@@ -302,12 +302,12 @@ describe('Submit Commitment', async () => {
 			let t = (await time.latest()) + 1500;
 			await time.increaseTo(t);
 			//reveal
-			await commitReveal.connect(otherAccount2).reveal(12345, 0);
+			await commitReveal.connect(otherAccount2).revealSolution(12345, 0);
 			let t2 = (await time.latest()) + 3500;
 			await time.increaseTo(t2);
-			await commitReveal.connect(otherAccount2).claim(0);
+			await commitReveal.connect(otherAccount2).claimPrize(0);
 			await expect(
-				commitReveal.connect(otherAccount2).claim(0)
+				commitReveal.connect(otherAccount2).claimPrize(0)
 			).to.be.revertedWith('Already claimed');
 		});
 
@@ -324,9 +324,9 @@ describe('Submit Commitment', async () => {
 				.submitCommitment(_hashAnswer, 0);
 			let t = (await time.latest()) + 1500;
 			await time.increaseTo(t);
-			await commitReveal.connect(otherAccount2).reveal(12345, 0);
+			await commitReveal.connect(otherAccount2).revealSolution(12345, 0);
 			await expect(
-				commitReveal.connect(otherAccount2).claim(0)
+				commitReveal.connect(otherAccount2).claimPrize(0)
 			).to.be.revertedWith('Reveal deadline not complete');
 		});
 	});

@@ -34,7 +34,7 @@ contract CommitReveal{
      * Modifiers
      */
     modifier puzzleExist(uint _puzzleId){
-        require(_puzzleId < totalPuzzles,"Puzzle does not exist");
+        require(_puzzleId < totalPuzzles && _puzzleId >=0,"Puzzle does not exist");
         _;
     }
 
@@ -86,7 +86,7 @@ contract CommitReveal{
     /// @dev Allows player to verify if he is the winner of a puzzle
     /// @param _answer payload for verification
     /// @param _puzzleId puzzle ID
-    function reveal(uint _answer,uint _puzzleId) puzzleExist(_puzzleId) notCreator(_puzzleId) public{
+    function revealSolution(uint _answer,uint _puzzleId) puzzleExist(_puzzleId) notCreator(_puzzleId) public{
         Puzzle memory _puzzle = puzzles[_puzzleId];
         address _creator = _puzzle.creator;
         require(block.timestamp > _puzzle.guessDeadline,"Cannot reveal before deadline");
@@ -105,7 +105,7 @@ contract CommitReveal{
 
     /// @dev Allows player to claim prize 
     /// @param _puzzleId puzzle ID
-    function claim(uint _puzzleId) puzzleExist(_puzzleId) notCreator(_puzzleId) public{
+    function claimPrize(uint _puzzleId) puzzleExist(_puzzleId) notCreator(_puzzleId) public{
         Puzzle memory _puzzle = puzzles[_puzzleId];
         require(block.timestamp > _puzzle.revealDeadline,"Reveal deadline not complete");
         require(isPuzzleWinner[_puzzleId][msg.sender],"Not a winner");
