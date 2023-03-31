@@ -4,12 +4,14 @@ import { useAccount } from 'wagmi';
 import { CONTRACT_ADDRESS, ABI } from '../constant';
 import { usePrepareContractWrite, useContractWrite } from 'wagmi';
 import { ethers, utils } from 'ethers';
+import addData from '../firebase/addData';
+import Router from 'next/router';
 
 const Create = () => {
 	const { address, isConnected } = useAccount();
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
-	const [solution, setSolution] = useState(0);
+	const [solution, setSolution] = useState('');
 	const [prize, setPrize] = useState(0);
 	const [guessDeadline, setGuessDeadline] = useState('');
 	const [revealDeadline, setRevealDeadline] = useState('');
@@ -17,12 +19,17 @@ const Create = () => {
 	const [loading, setLoading] = useState(false);
 
 	const getHash = (num) => {
+		if (!num) {
+			return;
+		}
 		if (!isConnected) {
+			alert('Should connect account to enter answer');
 		}
 		const _hash = utils.solidityKeccak256(
 			['address', 'uint256'],
-			[address, num]
+			[address, parseInt(num)]
 		);
+
 		setSolution(_hash);
 	};
 
@@ -65,16 +72,16 @@ const Create = () => {
 			guessDeadline,
 			revealDeadline,
 		};
-		let res = await fetch('http://localhost:3000/api/puzzles', {
-			method: 'POST',
-			body: JSON.stringify(doc),
-		});
-		res = await res.json();
-		console.log(res);
+		console.log(doc);
+		const { result, error } = await addData(address, doc);
+		if (error) {
+			return console.log(error);
+		}
 
 		//write to smart contract
 		write?.();
 		setLoading(false);
+		Router.push('/puzzles');
 	};
 
 	useEffect(() => {
@@ -83,7 +90,6 @@ const Create = () => {
 			.toISOString()
 			.slice(0, -8);
 		setInitialDate(_initialDate);
-		console.log(_initialDate);
 	}, []);
 
 	return (
@@ -152,8 +158,14 @@ const Create = () => {
 								Prize
 							</label>
 							<input
-								onChange={(e) => setPrize(e.target.value)}
+								onChange={(e) => {
+									if (!e.target.value) {
+										return;
+									}
+									setPrize(e.target.value);
+								}}
 								type='number'
+								step='0.0001'
 								id='prize'
 								className='border border-gray-300 bg-transparent text-white text-sm rounded-lg block w-full p-2.5 focus:outline-none'
 								placeholder='Ex : 10 MATIC'
@@ -168,7 +180,9 @@ const Create = () => {
 								Guess Deadline
 							</label>
 							<input
-								onChange={(e) => setGuessDeadline(+new Date(e.target.value))}
+								onChange={(e) =>
+									setGuessDeadline(Math.floor(+new Date(e.target.value) / 1000))
+								}
 								type='datetime-local'
 								name='guess_deadline'
 								id='guess_deadline'
@@ -181,7 +195,11 @@ const Create = () => {
 								Reveal Deadline
 							</label>
 							<input
-								onChange={(e) => setRevealDeadline(+new Date(e.target.value))}
+								onChange={(e) =>
+									setRevealDeadline(
+										Math.floor(+new Date(e.target.value) / 1000)
+									)
+								}
 								type='datetime-local'
 								name='reveal_deadline'
 								id='reveal_deadline'

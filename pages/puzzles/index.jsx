@@ -1,37 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import PuzzleCard from '../../components/PuzzleCard';
 import Navbar from '../../components/Navbar';
-import clientPromise from '../../mongodb';
+import getAllPuzzles from '../../firebase/getAllPuzzles';
 
-const Puzzles = ({ puzzless }) => {
+const Puzzles = () => {
+	let currentTime = Math.floor(+new Date() / 1000);
 	const [puzzles, setPuzzles] = useState([]);
+	const fetchData = async () => {
+		const { result, error } = await getAllPuzzles();
+		if (error) {
+			return console.log(error);
+		}
+		setPuzzles(result.docs);
+	};
 
 	useEffect(() => {
-		//fetch the puzzles
-		let obj = [
-			{
-				id: 0,
-				title:
-					'If three birds are sitting on a wire and you shoot one, how many birds are left on the wire?',
-				prize: 10,
-				guessDeadline: '12345',
-			},
-			{
-				id: 1,
-				title:
-					'MaMary’s father has five daughters: 1. Betty, 2. Irene, 3. Anna, 4. Emma.What’s the the name of the fifth daughter?',
-				prize: 12,
-				guessDeadline: '123345',
-			},
-			{
-				id: 2,
-				title:
-					'You ran a race and passed the person in second place. What place would you be in now?',
-				prize: 10,
-				guessDeadline: '142345',
-			},
-		];
-		setPuzzles(obj);
+		fetchData();
 	}, []);
 
 	return (
@@ -40,9 +24,66 @@ const Puzzles = ({ puzzless }) => {
 			<h1 className='text-2xl text-orange font-openSans font-semibold mb-5'>
 				Puzzles
 			</h1>
+			{puzzles.length == 0 && (
+				<h2 className='text-xxl text-orange font-openSans font-semibold'>
+					No new puzzles
+				</h2>
+			)}
+			{/* GUESS GRID */}
+			<h2 className='text-lg text-orange text-bold'>Go Guess Ahead!</h2>
 			<div className='grid grid-cols-3 gap-5 px-5'>
 				{puzzles.map((puzzle, i) => {
-					return <PuzzleCard puzzle={puzzle} key={i} />;
+					if (puzzle.data().guessDeadline > currentTime) {
+						return (
+							<PuzzleCard
+								puzzle={puzzle.data()}
+								key={i}
+								puzzleNum={i}
+								docId={puzzle.id}
+							/>
+						);
+					}
+				})}
+			</div>
+
+			{/* REVEAL GRID */}
+			<h2 className='text-lg text-orange text-bold mt-8'>
+				Go Reveal your answer!
+			</h2>
+			<div className='grid grid-cols-3 gap-5 px-5'>
+				{puzzles.map((puzzle, i) => {
+					if (
+						puzzle.data().guessDeadline < currentTime &&
+						puzzle.data().revealDeadline > currentTime
+					) {
+						return (
+							<PuzzleCard
+								puzzle={puzzle.data()}
+								key={i}
+								puzzleNum={i}
+								docId={puzzle.id}
+							/>
+						);
+					}
+				})}
+			</div>
+
+			{/* CLAIM PRIZE GRID */}
+			<h2 className='text-lg text-orange text-bold mt-8'>
+				Go Cliam your Prize!
+			</h2>
+			<div className='grid grid-cols-3 gap-5 px-5'>
+				{puzzles.map((puzzle, i) => {
+					if (puzzle.data().revealDeadline < currentTime) {
+						return (
+							<PuzzleCard
+								puzzle={puzzle.data()}
+								key={i}
+								puzzleNum={i}
+								docId={puzzle.id}
+							/>
+						);
+					}
 				})}
 			</div>
 		</section>
@@ -50,18 +91,3 @@ const Puzzles = ({ puzzless }) => {
 };
 
 export default Puzzles;
-
-export async function getServerSideProps() {
-	try {
-		const client = await clientPromise;
-		const db = client.db('commitReveal');
-
-		const puzzles = await db.collection('puzzles').find({}).toArray();
-
-		return {
-			props: { puzzles: JSON.parse(JSON.stringify(puzzles)) },
-		};
-	} catch (e) {
-		console.error(e);
-	}
-}
