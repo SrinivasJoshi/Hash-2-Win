@@ -9,8 +9,6 @@ import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import { publicProvider } from '@wagmi/core/providers/public';
 import { polygonMumbai } from '@wagmi/core/chains';
 
-// import { alchemyProvider } from 'wagmi/providers/alchemy';
-
 const { chains, provider } = configureChains(
 	[polygonMumbai],
 	[publicProvider()]

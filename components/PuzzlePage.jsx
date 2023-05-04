@@ -1,138 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from '../../components/Navbar';
-import { useAccount } from 'wagmi';
-import { usePrepareContractWrite, useContractWrite } from 'wagmi';
-import { utils } from 'ethers';
-import { ABI, CONTRACT_ADDRESS } from '../../constant';
-import getPuzzle from '../../firebase/getPuzzle';
-import { useRouter } from 'next/router';
+import Navbar from './Navbar';
 
-const Puzzle = () => {
-	//url param stuff
-	const router = useRouter();
-
-	//other state
-	const { address, isConnected } = useAccount();
-	const [solution, setSolution] = useState('');
-	const [answer, setAnswer] = useState(0);
-	const [puzzleNum, setPuzzleNum] = useState(0);
-	const [puzzleId, setPuzzleId] = useState(0);
-	const [currentTime, setCurrentTime] = useState(0);
-	const [puzzle, setPuzzle] = useState(0);
-	const [loading, setLoading] = useState(false);
-
-	const getHash = (num) => {
-		if (!num) {
-			return;
-		}
-		if (!isConnected) {
-			alert('Should connect account to enter answer');
-		}
-		const _hash = utils.solidityKeccak256(
-			['address', 'uint256'],
-			[address, num + '']
-		);
-		setSolution(_hash);
-	};
-
-	const { config: submitSolutionConfig, error: submitSolutionError } =
-		usePrepareContractWrite({
-			address: CONTRACT_ADDRESS,
-			abi: ABI,
-			functionName: 'submitCommitment',
-			args: [solution, puzzleNum],
-			overrides: {
-				from: address,
-			},
-			chainId: 80001,
-		});
-	const { config: answerRevealConfig, error: answerRevealError } =
-		usePrepareContractWrite({
-			address: CONTRACT_ADDRESS,
-			abi: ABI,
-			functionName: 'revealSolution',
-			args: [answer, puzzleNum],
-			overrides: {
-				from: address,
-			},
-			chainId: 80001,
-		});
-	const { config: claimPrizeConfig, error: claimPrizeError } =
-		usePrepareContractWrite({
-			address: CONTRACT_ADDRESS,
-			abi: ABI,
-			functionName: 'claimPrize',
-			args: [puzzleNum],
-			overrides: {
-				from: address,
-			},
-			chainId: 80001,
-		});
-
-	const { write: writeSolution } = useContractWrite(submitSolutionConfig);
-	const { write: answerReveal } = useContractWrite(answerRevealConfig);
-	const { write: claimPrize } = useContractWrite(claimPrizeConfig);
-
-	const submitSolution = () => {
-		if (solution.length == 0) {
-			alert('Input empty!');
-			return;
-		}
-		setLoading(true);
-		writeSolution?.();
-		setLoading(false);
-	};
-
-	const submitAnswerForReveal = async () => {
-		console.log(answer);
-		if (!answer) {
-			alert('Input empty!');
-			return;
-		}
-		setLoading(true);
-		answerReveal?.();
-		setLoading(false);
-	};
-	const submitClaimPrize = async () => {
-		setLoading(true);
-		claimPrize?.();
-		setLoading(false);
-	};
-
-	const fetchData = async () => {
-		let { id } = router.query;
-		const divider = id.search('-');
-		setPuzzleNum(id.substring(0, divider));
-		setPuzzleId(id.substring(divider + 1, id.length));
-
-		const { result, error } = await getPuzzle(
-			id.substring(divider + 1, id.length)
-		);
-		if (error) {
-			return console.log(error);
-		}
-		setPuzzle(result.data());
-	};
-
-	useEffect(() => {
-		if (!router.isReady) return;
-		fetchData();
-		setCurrentTime(Math.floor(+new Date() / 1000));
-	}, [router.isReady]);
-
-	useEffect(() => {
-		if (claimPrizeError?.reason) {
-			alert(claimPrizeError.reason);
-		}
-		if (submitSolutionError?.reason) {
-			console.log(submitSolutionError);
-			alert(submitSolutionError.reason);
-		}
-		if (answerRevealError?.reason) {
-			alert(answerRevealError.reason);
-		}
-	}, [claimPrizeError]);
-
+const PuzzlePage = ({
+	puzzle,
+	mode,
+	loading,
+	getHash,
+	currentTime,
+	submitSolution,
+	submitAnswerForReveal,
+	submitClaimPrize,
+	setAnswer,
+}) => {
 	return (
 		<section className='bg-purple font-montserrat flex flex-col items-center min-h-screen'>
 			<Navbar />
@@ -162,7 +40,7 @@ const Puzzle = () => {
 				</div>
 				<p className='mt-10 text-xl text-bold my-5'>Puzzle description : </p>
 				<p className='w-3/5 text-center text-sm'>{puzzle.description}</p>
-				{currentTime < puzzle.guessDeadline && (
+				{mode === 'submit' && currentTime < puzzle.guessDeadline && (
 					<>
 						<label htmlFor='solution' className='mt-10'>
 							Your answer for commit
@@ -177,7 +55,8 @@ const Puzzle = () => {
 						/>
 					</>
 				)}
-				{currentTime < puzzle.revealDeadline &&
+				{mode === 'reveal' &&
+					currentTime < puzzle.revealDeadline &&
 					currentTime > puzzle.guessDeadline && (
 						<>
 							<label htmlFor='answer' className='mt-10'>
@@ -194,7 +73,7 @@ const Puzzle = () => {
 						</>
 					)}
 			</div>
-			{currentTime < puzzle.guessDeadline && (
+			{mode === 'submit' && currentTime < puzzle.guessDeadline && (
 				<button
 					onClick={submitSolution}
 					disabled={loading}
@@ -202,18 +81,19 @@ const Puzzle = () => {
 					Commit Solution
 				</button>
 			)}
-			{currentTime > puzzle.guessDeadline &&
+			{mode === 'reveal' &&
+				currentTime > puzzle.guessDeadline &&
 				currentTime < puzzle.revealDeadline && (
 					<button
 						onClick={submitAnswerForReveal}
-						disabled={loading}
+						// disabled={loading}
 						className='mt-10 cursor-pointer bg-orange font-bold text-purple px-3 py-2 rounded-3xl disabled:cursor-not-allowed'>
 						Submit Answer for Reveal
 					</button>
 				)}
-			{currentTime > puzzle.revealDeadline && (
+			{mode === 'claim' && currentTime > puzzle.revealDeadline && (
 				<>
-					<h3 className='w-3/5 text-center text-sm text-white mt-5'>
+					<h3 className='w-3/5 text-center text-sm text-white mt-5 font-bold'>
 						You can cliam prize if you have are revealed answer and it is
 						correct
 					</h3>
@@ -249,4 +129,4 @@ const Puzzle = () => {
 	);
 };
 
-export default Puzzle;
+export default PuzzlePage;

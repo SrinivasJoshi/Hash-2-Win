@@ -4,7 +4,7 @@ function HomePage() {
 	return (
 		<section className='bg-purple font-montserrat flex flex-col items-center'>
 			<Navbar />
-			<div className='min-h-screen flex flex-col items-center justify-evenly'>
+			<div className='min-h-screen flex flex-col items-center justify-evenly py-10'>
 				<h1
 					id='topElement'
 					className='text-2xl text-orange font-openSans font-bold'>

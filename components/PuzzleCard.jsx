@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 
-const PuzzleCard = ({ puzzle, puzzleNum, docId }) => {
+const PuzzleCard = ({ puzzle, puzzleNum, docId, mode }) => {
 	let currentTime = Math.floor(+new Date() / 1000);
 	let _date;
 	if (currentTime < puzzle.guessDeadline) {
@@ -27,7 +27,7 @@ const PuzzleCard = ({ puzzle, puzzleNum, docId }) => {
 						<p>Reveal Deadline : {_date}</p>
 					)}
 			</div>
-			<Link href={`puzzles/${puzzleNum}-${docId}`}>
+			<Link href={`puzzles/${mode}/${puzzleNum}-${docId}`}>
 				<div className='text-sm mt-3 cursor-pointer bg-purple font-bold text-orange px-3 py-2 rounded-xl'>
 					View Puzzle
 				</div>

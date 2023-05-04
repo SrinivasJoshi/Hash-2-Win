@@ -95,7 +95,7 @@ contract CommitReveal{
         require(createCommitment(msg.sender,_answer) == committedAnswers[_puzzleId][msg.sender],"Answer does not match committed answer");
         // is answer correct
         require(createCommitment(_creator,_answer) == committedAnswers[_puzzleId][_creator],"Answer is incorrect");
-        require(!isPuzzleWinner[_puzzleId][msg.sender],"Already a winner");
+        require(!isPuzzleWinner[_puzzleId][msg.sender],"Already a winner of this puzzle");
 
         isPuzzleWinner[_puzzleId][msg.sender]=true;
         _puzzle.winnerCount+=1;
@@ -109,7 +109,7 @@ contract CommitReveal{
         Puzzle memory _puzzle = puzzles[_puzzleId];
         require(block.timestamp > _puzzle.revealDeadline,"Reveal deadline not complete");
         require(isPuzzleWinner[_puzzleId][msg.sender],"Not a winner");
-        require(!isPrizeClaimed[_puzzleId][msg.sender],"Already claimed");
+        require(!isPrizeClaimed[_puzzleId][msg.sender],"Prize already claimed");
 
         uint prize = _puzzle.totalPrize/_puzzle.winnerCount;
         isPrizeClaimed[_puzzleId][msg.sender]=true;
