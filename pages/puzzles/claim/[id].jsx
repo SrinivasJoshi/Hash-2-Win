@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import PuzzlePage from '../../../components/PuzzlePage';
 import getPuzzle from '../../../firebase/getPuzzle';
 import { ABI, CONTRACT_ADDRESS } from '../../../constant';
+import { toast } from 'react-toastify';
 
 const SubmitPuzzle = () => {
 	//url param stuff
@@ -77,7 +78,16 @@ const SubmitPuzzle = () => {
 
 	useEffect(() => {
 		if (claimPrizeError?.reason) {
-			alert(claimPrizeError.reason);
+			toast.error(claimPrizeError.reason, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 	}, [claimPrizeError]);
 

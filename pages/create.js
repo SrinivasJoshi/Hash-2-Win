@@ -7,6 +7,7 @@ import { watchContractEvent } from '@wagmi/core';
 import { ethers, utils } from 'ethers';
 import addData from '../firebase/addData';
 import Router from 'next/router';
+import { toast } from 'react-toastify';
 
 const Create = () => {
 	const { address, isConnected } = useAccount();
@@ -39,7 +40,16 @@ const Create = () => {
 			return;
 		}
 		if (!isConnected) {
-			alert('Should connect account to enter answer');
+			toast.warn(`Connect web3 wallet to answer puzzle`, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 		const _hash = utils.solidityKeccak256(
 			['address', 'uint256'],
@@ -69,17 +79,45 @@ const Create = () => {
 		//validation
 		e.preventDefault();
 		if (solution < 0) {
-			alert('Solution cannot be less than 0');
+			toast.warn('Solution cannot be less than 0', {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			setLoading(false);
 			return;
 		}
 		if (prize <= 0) {
-			alert('Prize cannot be less than 0 or 0');
+			toast.warn('Prize cannot be less than 0 or 0', {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
+
 			setLoading(false);
 			return;
 		}
 		if (revealDeadline < guessDeadline) {
-			alert('Reveal dealine should be after Guess deadline');
+			toast.warn('Reveal dealine should be after Guess deadline', {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			setLoading(false);
 			return;
 		}
@@ -113,7 +151,16 @@ const Create = () => {
 
 	useEffect(() => {
 		if (createPuzzleError?.reason) {
-			alert(createPuzzleError.reason);
+			toast.error(createPuzzleError.reason, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 	}, [createPuzzleError]);
 

@@ -8,6 +8,8 @@ import {
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import { publicProvider } from '@wagmi/core/providers/public';
 import { polygonMumbai } from '@wagmi/core/chains';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const { chains, provider } = configureChains(
 	[polygonMumbai],
@@ -39,6 +41,18 @@ function MyApp({ Component, pageProps }) {
 				})}>
 				<Component {...pageProps} />
 			</RainbowKitProvider>
+			<ToastContainer
+				position='top-right'
+				autoClose={5000}
+				hideProgressBar={false}
+				newestOnTop={false}
+				closeOnClick
+				rtl={false}
+				pauseOnFocusLoss
+				draggable
+				pauseOnHover
+				theme='dark'
+			/>
 		</WagmiConfig>
 	);
 }

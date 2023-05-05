@@ -8,6 +8,7 @@ import getPuzzle from '../../../firebase/getPuzzle';
 import { ABI, CONTRACT_ADDRESS } from '../../../constant';
 import { watchContractEvent } from '@wagmi/core';
 import Router from 'next/router';
+import { toast } from 'react-toastify';
 
 const SubmitPuzzle = () => {
 	//url param stuff
@@ -31,6 +32,16 @@ const SubmitPuzzle = () => {
 			once: true,
 		},
 		(puzzleId, player) => {
+			toast.success(`Answer committed to ${puzzleId} by ${player}`, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			console.log(`Answer committed to ${puzzleId} by ${player}`);
 			setLoading(false);
 			Router.push('/puzzles');
@@ -42,7 +53,16 @@ const SubmitPuzzle = () => {
 			return;
 		}
 		if (!isConnected) {
-			alert('Should connect account to enter answer');
+			toast.warn(`Connect web3 wallet to answer puzzle`, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 		const _hash = utils.solidityKeccak256(
 			['address', 'uint256'],
@@ -67,7 +87,16 @@ const SubmitPuzzle = () => {
 
 	const submitSolution = () => {
 		if (solution.length == 0) {
-			alert('Input empty!');
+			toast.warn(`Input empty!`, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			return;
 		}
 		setLoading(true);
@@ -97,8 +126,17 @@ const SubmitPuzzle = () => {
 
 	useEffect(() => {
 		if (submitSolutionError?.reason) {
-			console.log(submitSolutionError);
-			alert(submitSolutionError.reason);
+			console.log(submitSolutionError.reason);
+			toast.error(submitSolutionError.reason, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 	}, [submitSolutionError]);
 

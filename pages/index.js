@@ -1,5 +1,6 @@
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
+
 function HomePage() {
 	return (
 		<section className='bg-purple font-montserrat flex flex-col items-center'>

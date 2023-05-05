@@ -6,6 +6,7 @@ import { utils } from 'ethers';
 import { ABI, CONTRACT_ADDRESS } from '../../constant';
 import getPuzzle from '../../firebase/getPuzzle';
 import { useRouter } from 'next/router';
+import { toast } from 'react-toastify';
 
 const Puzzle = () => {
 	//url param stuff
@@ -26,7 +27,16 @@ const Puzzle = () => {
 			return;
 		}
 		if (!isConnected) {
-			alert('Should connect account to enter answer');
+			toast.warn(`Connect web3 wallet to answer puzzle`, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 		const _hash = utils.solidityKeccak256(
 			['address', 'uint256'],
@@ -75,7 +85,16 @@ const Puzzle = () => {
 
 	const submitSolution = () => {
 		if (solution.length == 0) {
-			alert('Input empty!');
+			toast.warn('Input Empty!', {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			return;
 		}
 		setLoading(true);
@@ -86,7 +105,16 @@ const Puzzle = () => {
 	const submitAnswerForReveal = async () => {
 		console.log(answer);
 		if (!answer) {
-			alert('Input empty!');
+			toast.warn('Input Empty!', {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			return;
 		}
 		setLoading(true);
@@ -122,14 +150,41 @@ const Puzzle = () => {
 
 	useEffect(() => {
 		if (claimPrizeError?.reason) {
-			alert(claimPrizeError.reason);
+			toast.error(claimPrizeError.reason, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 		if (submitSolutionError?.reason) {
 			console.log(submitSolutionError);
-			alert(submitSolutionError.reason);
+			toast.error(submitSolutionError.reason, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 		if (answerRevealError?.reason) {
-			alert(answerRevealError.reason);
+			toast.error(answerRevealError.reason, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 	}, [claimPrizeError]);
 

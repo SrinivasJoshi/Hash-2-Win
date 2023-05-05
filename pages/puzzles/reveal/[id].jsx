@@ -7,6 +7,7 @@ import PuzzlePage from '../../../components/PuzzlePage';
 import getPuzzle from '../../../firebase/getPuzzle';
 import { ABI, CONTRACT_ADDRESS } from '../../../constant';
 import { watchContractEvent } from '@wagmi/core';
+import { toast } from 'react-toastify';
 
 const SubmitPuzzle = () => {
 	//url param stuff
@@ -30,7 +31,16 @@ const SubmitPuzzle = () => {
 			once: true,
 		},
 		(puzzleId, winner) => {
-			alert(`You are the winner of this puzzle!`);
+			toast.success('You are the winner of this puzzle', {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			console.log(puzzleId, winner);
 			setLoading(false);
 		}
@@ -41,7 +51,16 @@ const SubmitPuzzle = () => {
 			return;
 		}
 		if (!isConnected) {
-			alert('Should connect account to enter answer');
+			toast.warn(`Connect web3 wallet to answer puzzle`, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 		}
 		const _hash = utils.solidityKeccak256(
 			['address', 'uint256'],
@@ -66,11 +85,29 @@ const SubmitPuzzle = () => {
 	const submitAnswerForReveal = async () => {
 		console.log(answer);
 		if (!answer) {
-			alert('Input empty!');
+			toast.error('Input empty!', {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			return;
 		}
 		if (answerRevealError?.reason) {
-			alert(answerRevealError.reason);
+			toast.error(answerRevealError.reason, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			setLoading(false);
 			return;
 		}
@@ -106,7 +143,16 @@ const SubmitPuzzle = () => {
 			answerRevealError.reason !==
 				'execution reverted: Answer does not match committed answer'
 		) {
-			alert(answerRevealError.reason);
+			toast.error(answerRevealError.reason, {
+				position: 'top-right',
+				autoClose: 5000,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: 'dark',
+			});
 			setLoading(false);
 		}
 	}, [answerRevealError]);
